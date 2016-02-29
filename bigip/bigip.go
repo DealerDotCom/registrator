@@ -29,11 +29,11 @@ func (f *Factory) New(uri *url.URL) bridge.RegistryAdapter {
 	}
 
 	REQUIRE_NAME := os.Getenv("REQUIRE_NAME")
-	
+
 	return &BigIpAdapter {
-		client: bigip.NewSession(uri.Host, user, password), 
+		client: bigip.NewSession(uri.Host, user, password),
 		namedPoolOnly: strings.ToLower(REQUIRE_NAME) == "true",
-	}	
+	}
 }
 
 type BigIpAdapter struct {
@@ -133,9 +133,9 @@ func (r *BigIpAdapter) Register(service *bridge.Service) error {
 
     //if check_port := service.Attrs["check_port"]; check_port != "" {
     	//TODO: add monitor to node support?
-    	// how do we upgrade monitor configs? seems like this would be better to just specify per node 
+    	// how do we upgrade monitor configs? seems like this would be better to just specify per node
     	// but this could lead to blowing out the monitor configs on the bigIp?
-    	// docs say health check support is getting revamped in registrator anyway, so 
+    	// docs say health check support is getting revamped in registrator anyway, so
     	// we'll just leave this as TBD
     //	f5.CreateMonitor("web_http", "http", 5, 16, "GET /\r\n", "200 OK")
     //	f5.AddMonitorToPool("web_http", "web_80_pool")
@@ -166,4 +166,9 @@ func (r *BigIpAdapter) Deregister(service *bridge.Service) error {
 
 func (r *BigIpAdapter) Refresh(service *bridge.Service) error {
 	return r.Register(service)
+}
+
+func (r *BigIpAdapter) Services() ([]*bridge.Service, error) {
+	//TODO: implement me!
+	return nil,nil
 }
