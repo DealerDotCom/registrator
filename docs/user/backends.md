@@ -125,3 +125,48 @@ The JSON will contain all infromation about the published container service. As 
 Will result in the zookeeper path and JSON znode body:
 
     /basepath/www/80 = {"Name":"www","IP":"192.168.1.123","PublicPort":49153,"PrivatePort":80,"ContainerID":"9124853ff0d1","Tags":[],"Attrs":{}}
+
+## F5 BigIP Pool
+
+F5 BigIP support uses the iControlREST API to add/remove/create nodes and pools in [Local Traffic Manager](https://f5.com/products/modules/local-traffic-manager). Pools will be named with the service name and nodes will be named with the service id minus the port. For now all configuration must live in the Common partition.
+
+Example URI:
+
+	$ registrator bigip://user:password@my-ltm-address
+
+Starting a container with a single exposed port will produce the following:
+
+	Pool: <service-name>
+	    Pool Member: <service-id>:<external port>
+	Node: <host>_<container name>
+	    Address: <ip>
+	
+Starting a container with multiple ports will produce a pool per exposed port:
+
+	Pool: <service-name>-<internal port 1>
+	    Pool Member: <service-id>:<external port 1>
+   	Pool: <service-name>-<internal port 2>
+	    Pool Member: <service-id>:<external port 2>
+	Node: <host>_<container name>
+	    Address: <ip>
+	    
+Concrete example:
+
+	$ docker run -p 45678:80 -p 45679:443 nginx
+	
+Results in
+
+	Pool: nginx-80
+	      |
+	      +- Pool Member: node01_nginx:45678
+	         |
+	         +- node01_nginx: 172.17.0.40
+	Pool: nginx-443
+	      |
+	      +- Pool Member: node01_nginx:45679
+	         |
+	         +- node01_nginx: 172.17.0.40
+
+It is possible to control which containers are added as a node in LTM by requring that an explicit `SERVICE_NAME` be defined. This will cause registartor to ignore any containers missing this property.
+
+	$ docker run -e REQUIRE_NAME=true registrator bigip://user:password@my-ltm
